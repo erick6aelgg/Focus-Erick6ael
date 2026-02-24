@@ -7,10 +7,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-/* *
- *
- */
 
+/* *
+ * @author <a href="mailto:miguel.mavt59@ciencias.unam.mx">Miguel Angel Valente Trinidad - @MiguelAngel59</a>
+ */
 public class MainActivity extends AppCompatActivity {
 
     @Override
