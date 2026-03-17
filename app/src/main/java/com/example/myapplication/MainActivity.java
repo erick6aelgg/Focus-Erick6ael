@@ -13,6 +13,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -198,6 +199,19 @@ public class MainActivity extends AppCompatActivity {
             }
         } else {
             currentMode = SessionMode.FOCUS;
+        }
+
+        // Mostramos un mensaje sencillo al finalizar cada sesion.
+        Toast.makeText(this, "¡Sesión terminada!", Toast.LENGTH_SHORT).show();
+
+        // solicitamos al servicio del sistema que genere una vibracion simple
+        // para notificar al usuario que la sesion a terminado.
+        // PERMISOS NECESARIOS EN EL MANIFIESTO:
+        // <uses-permission android:name="android.permission.VIBRATE" />
+        Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        if (v != null) {
+            // Vibra por 500 milisegundos
+            v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
         }
 
         resetModeTime();
