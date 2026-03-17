@@ -125,7 +125,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO
+     * Inicia o reanuda el temporizador desde el tiempo restante actual.
+     * Actualiza el estado a RUNNING y cambia el texto del botón.
+     * Al llamarse cada segundo, actualiza el display. Al terminar,
+     * delega en onSessionFinished().
      */
     private void startTimer() {
         // Actualizamos el estado del temporizador.
@@ -175,19 +178,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO: Documentar.
-     * TODO: reiniciar el contenedor de puntos o agregar un nuevo punto en el layout.
-     * TODO: actualizar el texto que indica el numero de sesiones de enfoque completadas.
+     * Lógica de transición entre sesiones al finalizar el tiempo.
+     * En sesiones de FOCUS: agrega un punto al contenedor. Cuando se
+     * alcanzan 4 sesiones de FOCUS se limpia el contenedor y pasa a REST.
+     * En descanso (BREAK o REST): vuelve a FOCUS.
      */
     private void onSessionFinished() {
-        // Actualizamos el estado de nuestro temporizador.
         timerState = TimerState.IDLE;
 
-        // Actualizamos el estado de la sesion por su sucesora.
         if (currentMode == SessionMode.FOCUS) {
             focusSessionsCompleted++;
+            addDot(); // Registra visualmente la sesión completada
             if (focusSessionsCompleted >= SESSIONS_BEFORE_REST) {
                 focusSessionsCompleted = 0;
+                sessionDotsContainer.removeAllViews(); // Reinicia el indicador visual del ciclo
                 currentMode = SessionMode.REST;
             } else {
                 currentMode = SessionMode.BREAK;
@@ -201,9 +205,26 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * TODO
+     * Crea un punto visual (View circular con drawable) y lo agrega
+     * dinámicamente al LinearLayout sessionDotsContainer.
+     * El tamaño es 10dp y el margen derecho entre puntos es 8dp.
      */
-    private void addDot() { }
+    private void addDot() {
+        // Creamos la vista del punto.
+        View dot = new View(this);
+        // Definimos su tamano (10dp convertido a pixeles).
+        int dotSize = (int) (10 * getResources().getDisplayMetrics().density);
+        // Creamos un contenedor para el punto.
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(dotSize, dotSize);
+        // Agregamos un margen de separacion a la derecha (8dp).
+        params.setMarginEnd((int) (8 * getResources().getDisplayMetrics().density));
+        // Aplicamos el layout a la vista.
+        dot.setLayoutParams(params);
+        // Asignamos la figura de nuestro punto (drawable).
+        dot.setBackground(getDrawable(R.drawable.dot_session_completed));
+        // Agregamos el punto creado al contenedor.
+        sessionDotsContainer.addView(dot);
+    }
 
     /**
      * Asigna a timeLeftMillis la duración correspondiente al modo actual
@@ -220,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Cancela el CountDownTimer si está activo y lo anula para
-     * permitir que el GC lo limpie y evitar instancias múltiples.
+     * permitir que el GC   lo limpie y evitar instancias múltiples.
      */
     private void cancelTimer() {
         // Si el temporizador esta activo:
