@@ -46,11 +46,16 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton btnStats, btnSettings;
     private ChipGroup chipGroupMode;
     private Chip chipFocus, chipBreak, chipRest;
-    // TODO: delcarar el texto que indica el estado de la sesion.
     private TextView tvTimerDisplay;
-    // TODO: delcarar el texto que indica cuantas sesiones han sido completadas.
+
+    private TextView tvSessionState;
+
+    private TextView tvSessionsCompleted;
     private MaterialButton btnStartStop;
-    // TODO: delcarar los botones de reinicio y salto de una sesion.
+
+    private MaterialButton btnReset;
+
+    private MaterialButton btnSkip;
     private LinearLayout sessionDotsContainer;
     // TODO: declarar el texto para la frase motivadora.
     // Elementos para el funcionamiento del temporizador.
@@ -59,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     private SessionMode currentMode = SessionMode.FOCUS;
     private long timeLeftMillis = FOCUS_DURATION_MS;
     private int focusSessionsCompleted = 0;
+    private int totalSessionsCompleted = 0;
 
     /**
      * Punto de entrada de la Activity. Infla la vista, enlaza elementos
@@ -92,9 +98,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Enlaza los elementos del layout con sus variables correspondientes.
-     * TODO: inicializar el texto que indica el estado de la sesion.
-     * TODO: inicializar el texto que indica cuantas sesiones han sido completadas.
-     * TODO: inicializar los botones de reinicio y salto de una sesion.
      * TODO: inicializar el texto para la frase motivadora.
      */
     private void bindViews() {
@@ -105,7 +108,11 @@ public class MainActivity extends AppCompatActivity {
         chipBreak = findViewById(R.id.chipBreak);
         chipRest = findViewById(R.id.chipRest);
         tvTimerDisplay = findViewById(R.id.tvTimerDisplay);
+        tvSessionState = findViewById(R.id.tvSessionState);
+        tvSessionsCompleted = findViewById(R.id.tvSessionsCompleted);
         btnStartStop = findViewById(R.id.btnStartStop);
+        btnReset = findViewById(R.id.btnReset);
+        btnSkip = findViewById(R.id.btnSkip);
         sessionDotsContainer = findViewById(R.id.sessionDotsContainer);
     }
 
@@ -121,8 +128,8 @@ public class MainActivity extends AppCompatActivity {
             else startTimer();
         });
 
-        btnStats.setOnClickListener(null);
-        btnSettings.setOnClickListener(null);
+        btnReset.setOnClickListener(v -> resetTimer());
+        btnSkip.setOnClickListener(v -> skipToNextSession());
     }
 
     /**
@@ -189,6 +196,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (currentMode == SessionMode.FOCUS) {
             focusSessionsCompleted++;
+            totalSessionsCompleted++;
             addDot(); // Registra visualmente la sesión completada
             if (focusSessionsCompleted >= SESSIONS_BEFORE_REST) {
                 focusSessionsCompleted = 0;
@@ -214,6 +222,7 @@ public class MainActivity extends AppCompatActivity {
             v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
         }
 
+        tvSessionsCompleted.setText("Sesiones completadas: " + totalSessionsCompleted);
         resetModeTime();
         btnStartStop.setText("Comenzar");
     }
@@ -268,6 +277,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Detiene el temporizador y reinicia el tiempo al valor inicial
+     * del modo actual, sin avanzar al siguiente estado.
+     */
+    private void resetTimer() {
+        cancelTimer();
+        timerState = TimerState.IDLE;
+        btnStartStop.setText("Comenzar");
+        resetModeTime();
+    }
+
+    /**
+     * Cancela el tiempo restante y fuerza el fin de la sesión actual,
+     * avanzando inmediatamente al siguiente modo sin esperar que el
+     * contador llegue a cero.
+     */
+    private void skipToNextSession() {
+        cancelTimer();
+        onSessionFinished();
+    }
+
+    /**
      * Actualiza el TextView del temporizador con el tiempo restante formateado
      * como MM:SS y resalta el chip correspondiente al modo actual.
      *
@@ -280,6 +310,18 @@ public class MainActivity extends AppCompatActivity {
         int seconds = (int) (millis / 1000) % 60;
         // Actualizamos el texto del temporizador.
         tvTimerDisplay.setText(String.format("%02d:%02d", minutes, seconds));
+
+        switch (currentMode) {
+            case FOCUS:
+                tvSessionState.setText("Modo Enfoque"); break;
+            case BREAK:
+                tvSessionState.setText("Modo Descanso");
+                break;
+            case REST:
+                tvSessionState.setText("Descanso Largo");
+                break;
+                default: tvSessionState.setText("Desconocido");
+        }
     }
 
     /**
