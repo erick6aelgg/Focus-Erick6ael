@@ -54,11 +54,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:singleSelection="true"
+        android:layout_marginTop="@dimen/chip_group_margin_top"
         app:layout_constraintTop_toBottomOf="@id/tvAppTitle"
-        app:layout_constraintBottom_toTopOf="@id/tvSessionState"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_chainStyle="spread_inside">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipFocus"
@@ -91,46 +90,6 @@
     </com.google.android.material.chip.ChipGroup>
 
     <TextView
-        android:id="@+id/tvTimerDisplay"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/time"
-        android:textColor="@color/color_on_surface"
-        android:textSize="@dimen/timer_text_size"
-        android:textStyle="bold"
-        android:fontFamily="monospace"
-        app:layout_constraintTop_toBottomOf="@id/chipGroupMode"
-        app:layout_constraintBottom_toTopOf="@id/btnStartStop"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <LinearLayout
-        android:id="@+id/sessionDotsContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:minHeight="20dp"
-        app:layout_constraintBottom_toTopOf="@id/tvSessionsCompleted"
-        app:layout_constraintTop_toBottomOf="@id/tvTimerDisplay"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/spacing_md" />
-
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btnStartStop"
-        android:layout_width="@dimen/btn_primary_width"
-        android:layout_height="@dimen/btn_primary_height"
-        android:text="@string/btn_start"
-        android:textSize="@dimen/btn_text_size"
-        android:textColor="@color/color_on_surface"
-        app:backgroundTint="@color/color_primary"
-        app:cornerRadius="@dimen/btn_corner_radius"
-        app:layout_constraintTop_toBottomOf="@id/tvTimerDisplay"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
         android:id="@+id/tvSessionState"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -141,8 +100,34 @@
         app:layout_constraintTop_toBottomOf="@id/chipGroupMode"
         app:layout_constraintBottom_toTopOf="@id/tvTimerDisplay"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/tvTimerDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/time"
+        android:textColor="@color/color_on_surface"
+        android:textSize="@dimen/timer_text_size"
+        android:textStyle="bold"
+        android:fontFamily="monospace"
+        app:layout_constraintTop_toBottomOf="@id/tvSessionState"
+        app:layout_constraintBottom_toTopOf="@id/sessionDotsContainer"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <LinearLayout
+        android:id="@+id/sessionDotsContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:minHeight="20dp"
+        android:layout_marginTop="@dimen/spacing_md"
+        app:layout_constraintTop_toBottomOf="@id/tvTimerDisplay"
+        app:layout_constraintBottom_toTopOf="@id/tvSessionsCompleted"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
     <TextView
         android:id="@+id/tvSessionsCompleted"
@@ -151,22 +136,50 @@
         android:text="@string/label_sessions"
         android:textColor="@color/color_on_surface_variant"
         android:textSize="@dimen/quote_text_size"
+        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/sessionDotsContainer"
+        app:layout_constraintBottom_toTopOf="@id/tvMotivationalQuote"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Botones Reset y Skip -->
+    <TextView
+        android:id="@+id/tvMotivationalQuote"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textColor="@color/color_on_surface_variant"
+        android:textSize="@dimen/quote_text_size"
+        android:gravity="center"
+        android:layout_marginTop="@dimen/spacing_md"
+        app:layout_constraintTop_toBottomOf="@id/tvSessionsCompleted"
+        app:layout_constraintBottom_toTopOf="@id/btnStartStop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnStartStop"
+        android:layout_width="@dimen/btn_primary_width"
+        android:layout_height="@dimen/btn_primary_height"
+        android:text="@string/btn_start"
+        android:textSize="@dimen/btn_text_size"
+        android:textColor="@color/color_on_surface"
+        app:backgroundTint="@color/color_primary"
+        app:cornerRadius="@dimen/btn_corner_radius"
+        android:layout_marginBottom="@dimen/spacing_md"
+        app:layout_constraintBottom_toTopOf="@id/layoutSecondaryControls"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <LinearLayout
         android:id="@+id/layoutSecondaryControls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        app:layout_constraintTop_toBottomOf="@id/btnStartStop"
+        android:layout_marginBottom="@dimen/spacing_lg"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="@dimen/spacing_md">
+        app:layout_constraintEnd_toEndOf="parent">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnReset"

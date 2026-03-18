@@ -16,6 +16,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -57,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
     private MaterialButton btnSkip;
     private LinearLayout sessionDotsContainer;
-    // TODO: declarar el texto para la frase motivadora.
+
     // Elementos para el funcionamiento del temporizador.
     private CountDownTimer countDownTimer;
     private TimerState timerState = TimerState.IDLE;
@@ -65,6 +66,22 @@ public class MainActivity extends AppCompatActivity {
     private long timeLeftMillis = FOCUS_DURATION_MS;
     private int focusSessionsCompleted = 0;
     private int totalSessionsCompleted = 0;
+    // --- Extras ---
+    private TextView tvMotivationalQuote;
+
+    private static final String[] MOTIVATIONAL_QUOTES = {
+            "¡Buen trabajo! Descansa un poco.",
+            "El descanso es parte del rendimiento.",
+            "Tomate un momento para respirar. ",
+            "Pequeños descansos, grandes resultados.",
+            "La mente también necesita recargar."
+    };
+
+    private static final String KEY_TIME_LEFT = "timeLeftMillis";
+    private static final String KEY_MODE = "currentMode";
+    private static final String KEY_STATE = "timerState";
+    private static final String KEY_FOCUS_COUNT = "focusSessionsCompleted";
+    private static final String KEY_TOTAL_COUNT = "totalSessionsCompleted";
 
     /**
      * Punto de entrada de la Activity. Infla la vista, enlaza elementos
@@ -83,7 +100,37 @@ public class MainActivity extends AppCompatActivity {
         // Asignamos los escuchas.
         setupClickListeners();
         // Actualizamos la IU.
+        if (savedInstanceState != null) {
+            timeLeftMillis = savedInstanceState.getLong(KEY_TIME_LEFT, FOCUS_DURATION_MS);
+            currentMode = SessionMode.valueOf(savedInstanceState.getString(KEY_MODE, SessionMode.FOCUS.name()));
+            timerState = TimerState.valueOf(savedInstanceState.getString(KEY_STATE, TimerState.IDLE.name()));
+            focusSessionsCompleted = savedInstanceState.getInt(KEY_FOCUS_COUNT, 0);
+            totalSessionsCompleted = savedInstanceState.getInt(KEY_TOTAL_COUNT, 0);
+
+            tvSessionsCompleted.setText("Sesiones completadas: " + totalSessionsCompleted);
+
+            if (timerState == TimerState.RUNNING) {
+                timerState = TimerState.IDLE; // startTimer() lo cambiará a RUNNING
+                startTimer();
+            } else {
+                btnStartStop.setText(timerState == TimerState.PAUSED ? "Reanudar" : "Comenzar");
+            }
+        }
         updateTimerDisplay(timeLeftMillis);
+    }
+
+    /**
+     * Guarda el estado del temporizador antes de que el sistema destruya
+     * la Activity (rotación, minimizar, etc.) para restaurarlo en onCreate().
+     */
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(KEY_TIME_LEFT,  timeLeftMillis);
+        outState.putString(KEY_MODE,     currentMode.name());
+        outState.putString(KEY_STATE,    timerState.name());
+        outState.putInt(KEY_FOCUS_COUNT, focusSessionsCompleted);
+        outState.putInt(KEY_TOTAL_COUNT, totalSessionsCompleted);
     }
 
     /**
@@ -98,7 +145,6 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Enlaza los elementos del layout con sus variables correspondientes.
-     * TODO: inicializar el texto para la frase motivadora.
      */
     private void bindViews() {
         btnStats = findViewById(R.id.btnStats);
@@ -114,6 +160,7 @@ public class MainActivity extends AppCompatActivity {
         btnReset = findViewById(R.id.btnReset);
         btnSkip = findViewById(R.id.btnSkip);
         sessionDotsContainer = findViewById(R.id.sessionDotsContainer);
+        tvMotivationalQuote = findViewById(R.id.tvMotivationalQuote);
     }
 
     /**
@@ -130,6 +177,9 @@ public class MainActivity extends AppCompatActivity {
 
         btnReset.setOnClickListener(v -> resetTimer());
         btnSkip.setOnClickListener(v -> skipToNextSession());
+        chipFocus.setOnClickListener(v -> onChipNavigationSelected(SessionMode.FOCUS));
+        chipBreak.setOnClickListener(v -> onChipNavigationSelected(SessionMode.BREAK));
+        chipRest.setOnClickListener(v  -> onChipNavigationSelected(SessionMode.REST));
     }
 
     /**
@@ -143,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
         timerState = TimerState.RUNNING;
         // Asignamos una texto mas adecuado al boton que controla nuestro temporizador.
         btnStartStop.setText("Pausar");
+        showMotivationalQuote();
 
         // PRUEBA
         // addDot();
@@ -183,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
         timerState = TimerState.PAUSED;
         // Actualizamos el texto del boton que controla el temporizador.
         btnStartStop.setText("Reanudar");
+        tvMotivationalQuote.setText("");
     }
 
     /**
@@ -225,6 +277,7 @@ public class MainActivity extends AppCompatActivity {
         tvSessionsCompleted.setText("Sesiones completadas: " + totalSessionsCompleted);
         resetModeTime();
         btnStartStop.setText("Comenzar");
+
     }
 
     /**
@@ -284,7 +337,7 @@ public class MainActivity extends AppCompatActivity {
         cancelTimer();
         timerState = TimerState.IDLE;
         btnStartStop.setText("Comenzar");
-        resetModeTime();
+        tvMotivationalQuote.setText("");resetModeTime();
     }
 
     /**
@@ -377,4 +430,43 @@ public class MainActivity extends AppCompatActivity {
         // Asignamos el color del borde para resaltar al chip activo.
         activeChip.setChipStrokeColor(ColorStateList.valueOf(colorAccent));
     }
+
+    /**
+     * Muestra una frase aleatoria al entrar a un modo de descanso.
+     * La oculta al volver a FOCUS.
+     */
+    private void showMotivationalQuote() {
+        if(tvMotivationalQuote == null) return;
+        if (currentMode == SessionMode.BREAK || currentMode == SessionMode.REST) {
+            int index = (int) (Math.random() * MOTIVATIONAL_QUOTES.length);
+            tvMotivationalQuote.setText(MOTIVATIONAL_QUOTES[index]);
+        } else {
+            tvMotivationalQuote.setText("");
+        }
+    }
+
+    /**
+     * Muestra un diálogo de confirmación antes de cambiar de modo
+     * al tocar un chip, para evitar cambios accidentales.
+     *
+     * @param targetMode Modo al que el usuario quiere cambiar.
+     */
+    private void onChipNavigationSelected(SessionMode targetMode) {
+        if (targetMode == currentMode) return;
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Cambiar modo")
+                .setMessage("¿Quieres cambiar al modo seleccionado? Se perderá el tiempo actual.")
+                .setPositiveButton("Sí", (dialog, which) -> {
+                    cancelTimer();
+                    timerState = TimerState.IDLE;
+                    currentMode = targetMode;
+                    btnStartStop.setText("Comenzar");
+                    resetModeTime();
+                    showMotivationalQuote();
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
 }
