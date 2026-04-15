@@ -8,4 +8,5 @@
     <color name="color_surface">#22163E</color>
     <color name="color_on_surface">#FFFFFF</color>
     <color name="color_on_surface_variant">#B0B0C3</color>
+    <color name="white">#ffffff</color>
 </resources>

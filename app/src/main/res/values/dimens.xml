@@ -7,13 +7,18 @@
     <dimen name="quote_text_size">14sp</dimen>
     <!-- Botones -->
     <dimen name="btn_primary_height">56dp</dimen>
+    <dimen name="btn_secondary_height"> 48dp </dimen>
     <dimen name="btn_primary_width">200dp</dimen>
     <dimen name="btn_corner_radius">28dp</dimen>
     <!-- Espaciado -->
-    <dimen name="spacing_md">16dp</dimen>
-    <dimen name="spacing_lg">24dp</dimen>
     <dimen name="screen_padding_horizontal">24dp</dimen>
+    <dimen name="spacing_xs"> 4dp </dimen>
+    <dimen name="spacing_sm"> 8dp </dimen>
+    <dimen name="spacing_md"> 16dp </dimen>
+    <dimen name="spacing_lg"> 24dp </dimen>
+    <dimen name="spacing_xl"> 32dp </dimen>
     <!-- Chips -->
     <dimen name="chip_group_margin_top">24dp</dimen>
     <dimen name="chip_spacing">8dp</dimen>
+    <dimen name="caption_text_size">11sp</dimen>
 </resources>

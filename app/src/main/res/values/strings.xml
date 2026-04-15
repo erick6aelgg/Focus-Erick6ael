@@ -16,4 +16,34 @@
     <string name="skip">Saltar </string>
     <string name="restart">Reiniciar </string>
     <string name="time">25:00 </string>
+
+    <string name="title_history">Historial</string>
+    <string name="title_preferences">Preferencias</string>
+    <string name="pref_language_title">Idioma</string>
+    <string name="pref_theme_title">Tema</string>
+    <string name="lang_preference_key">pref_language</string>
+    <string name="theme_preference_key">pref_theme</string>
+    <string name="no_sessions">No hay sesiones registradas</string>
+    <string name="session_count_zero">0 sesiones</string>
+    <string name="session_count">Sesiones</string>
+    <string name="no_sessions_label">Sin resultados</string>
+
+    <string name="history_filter_today">Hoy</string>
+    <string name="history_filter_week">Semana</string>
+    <string name="history_filter_all">Todo</string>
+
+    <string name="history_empty_icon">⌁</string>
+    <string name="history_empty_title">Sin sesiones registradas</string>
+    <string name="history_empty_desc">Aquí aparecerá tu historial cuando completes sesiones.</string>
+
+    <string name="session_status_completed">✓ Completada</string>
+    <string name="session_status_interrupted">✕ Interrumpida</string>
+
+    <string name="theme_light_id" translatable="false">light</string>
+    <string name="theme_dark_id" translatable="false">dark</string>
+
+    <plurals name="session_count">
+        <item quantity="one">%d sesión</item>
+        <item quantity="other">%d sesiones</item>
+    </plurals>
 </resources>
