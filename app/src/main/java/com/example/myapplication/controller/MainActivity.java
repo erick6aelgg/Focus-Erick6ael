@@ -1,6 +1,7 @@
 package com.example.myapplication.controller;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.ColorStateList;
 
 import android.os.Bundle;
@@ -21,6 +22,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.example.myapplication.R;
+import com.example.myapplication.view.PreferencesActivity;
+import com.example.myapplication.view.SessionHistoryActivity;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
@@ -181,6 +184,16 @@ public class MainActivity extends AppCompatActivity {
         chipFocus.setOnClickListener(v -> onChipNavigationSelected(SessionMode.FOCUS));
         chipBreak.setOnClickListener(v -> onChipNavigationSelected(SessionMode.BREAK));
         chipRest.setOnClickListener(v  -> onChipNavigationSelected(SessionMode.REST));
+
+        btnStats.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SessionHistoryActivity.class);
+            startActivity(intent);
+        });
+
+        btnSettings.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, PreferencesActivity.class);
+            startActivity(intent);
+        });
     }
 
     /**
