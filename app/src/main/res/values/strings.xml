@@ -10,12 +10,25 @@
     <string name="label_focus_mode">Modo de concentración</string>
     <string name="label_break_mode">Modo Descanso</string>
     <string name="label_rest_mode">Descanso Largo</string>
-    <string name="label_sessions">Sesiones completadas: </string>
-    <string name="stadistics">Estadísticas </string>
-    <string name="configuration">Configuracion </string>
-    <string name="skip">Saltar </string>
-    <string name="restart">Reiniciar </string>
-    <string name="time">25:00 </string>
+    <string name="label_sessions">Sesiones completadas: %1$d</string>
+
+    <string name="empty_text"></string>
+    <string name="change_mode_title">Cambiar modo</string>
+    <string name="change_mode_message">¿Quieres cambiar al modo seleccionado? Se perderá el tiempo actual.</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+    <string name="motivational_quote_1">¡Buen trabajo! Descansa un poco.</string>
+    <string name="motivational_quote_2">El descanso también forma parte del rendimiento.</string>
+    <string name="motivational_quote_3">Tómate un momento para respirar.</string>
+    <string name="motivational_quote_4">Pequeños descansos, grandes resultados.</string>
+    <string name="motivational_quote_5">La mente también necesita recargar.</string>
+    <string name="session_finished">¡Sesión terminada!</string>
+
+    <string name="stadistics">Estadísticas</string>
+    <string name="configuration">Configuracion</string>
+    <string name="skip">Saltar</string>
+    <string name="restart">Reiniciar</string>
+    <string name="time">25:00</string>
 
     <string name="title_history">Historial</string>
     <string name="title_preferences">Preferencias</string>

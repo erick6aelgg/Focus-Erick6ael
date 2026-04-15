@@ -22,6 +22,8 @@ public class PreferencesActivity extends AppCompatActivity
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        applySavedLanguage();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_preferences);
 
@@ -66,7 +68,6 @@ public class PreferencesActivity extends AppCompatActivity
         if (key.equals(getString(R.string.lang_preference_key))) {
             String lang = sharedPreferences.getString(key, "es");
             applyLanguage(lang);
-            recreate();
         }
 
         // Caso Tema (Oscuro / Claro / Sistema)
@@ -80,7 +81,9 @@ public class PreferencesActivity extends AppCompatActivity
      * TODO: Implementar este método para cambiar la configuración del idioma.
      */
     private void applyLanguage(String langCode) {
-        // Configurar la baseContext con el nuevo Locale.
+        androidx.core.os.LocaleListCompat locales =
+                androidx.core.os.LocaleListCompat.forLanguageTags(langCode);
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(locales);
     }
 
     /**
@@ -106,5 +109,14 @@ public class PreferencesActivity extends AppCompatActivity
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    private void applySavedLanguage() {
+        String lang = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(getString(R.string.lang_preference_key), "es");
+
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                androidx.core.os.LocaleListCompat.forLanguageTags(lang)
+        );
     }
 }

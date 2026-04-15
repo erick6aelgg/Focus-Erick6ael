@@ -2,6 +2,8 @@ package com.example.myapplication.controller;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.content.res.ColorStateList;
 
 import android.os.Bundle;
@@ -20,6 +22,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
+import androidx.preference.PreferenceManager;
 
 import com.example.myapplication.R;
 import com.example.myapplication.view.PreferencesActivity;
@@ -28,6 +31,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 
+import java.util.Locale;
 
 /**
  * @author <a href=erick6aelgg@ciencias.unam.mx> Erick Gael García Gutiérrez - @erick6aelgg </>
@@ -73,12 +77,12 @@ public class MainActivity extends AppCompatActivity {
     // --- Extras ---
     private TextView tvMotivationalQuote;
 
-    private static final String[] MOTIVATIONAL_QUOTES = {
-            "¡Buen trabajo! Descansa un poco.",
-            "El descanso es parte del rendimiento.",
-            "Tomate un momento para respirar. ",
-            "Pequeños descansos, grandes resultados.",
-            "La mente también necesita recargar."
+    private static final int[] MOTIVATIONAL_QUOTES = {
+            R.string.motivational_quote_1,
+            R.string.motivational_quote_2,
+            R.string.motivational_quote_3,
+            R.string.motivational_quote_4,
+            R.string.motivational_quote_5
     };
 
     private static final String KEY_TIME_LEFT = "timeLeftMillis";
@@ -94,6 +98,8 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        applySavedLanguage();
+
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         // Inflamos nuestra vista.
@@ -111,13 +117,13 @@ public class MainActivity extends AppCompatActivity {
             focusSessionsCompleted = savedInstanceState.getInt(KEY_FOCUS_COUNT, 0);
             totalSessionsCompleted = savedInstanceState.getInt(KEY_TOTAL_COUNT, 0);
 
-            tvSessionsCompleted.setText("Sesiones completadas: " + totalSessionsCompleted);
+            tvSessionsCompleted.setText(getString(R.string.label_sessions, totalSessionsCompleted));
 
             if (timerState == TimerState.RUNNING) {
                 timerState = TimerState.IDLE; // startTimer() lo cambiará a RUNNING
                 startTimer();
             } else {
-                btnStartStop.setText(timerState == TimerState.PAUSED ? "Reanudar" : "Comenzar");
+                btnStartStop.setText(timerState == TimerState.PAUSED ? R.string.btn_pause : R.string.btn_start);
             }
         }
         updateTimerDisplay(timeLeftMillis);
@@ -206,7 +212,7 @@ public class MainActivity extends AppCompatActivity {
         // Actualizamos el estado del temporizador.
         timerState = TimerState.RUNNING;
         // Asignamos una texto mas adecuado al boton que controla nuestro temporizador.
-        btnStartStop.setText("Pausar");
+        btnStartStop.setText(R.string.btn_pause);
         showMotivationalQuote();
 
         // PRUEBA
@@ -247,8 +253,8 @@ public class MainActivity extends AppCompatActivity {
         // Actualizamos el estado de nuestro temporizador.
         timerState = TimerState.PAUSED;
         // Actualizamos el texto del boton que controla el temporizador.
-        btnStartStop.setText("Reanudar");
-        tvMotivationalQuote.setText("");
+        btnStartStop.setText(R.string.btn_resume);
+        tvMotivationalQuote.setText(R.string.empty_text);
     }
 
     /**
@@ -288,9 +294,9 @@ public class MainActivity extends AppCompatActivity {
             v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
         }
 
-        tvSessionsCompleted.setText("Sesiones completadas: " + totalSessionsCompleted);
+        tvSessionsCompleted.setText(getString(R.string.label_sessions, totalSessionsCompleted));
         resetModeTime();
-        btnStartStop.setText("Comenzar");
+        btnStartStop.setText(R.string.btn_start);
 
     }
 
@@ -350,8 +356,9 @@ public class MainActivity extends AppCompatActivity {
     private void resetTimer() {
         cancelTimer();
         timerState = TimerState.IDLE;
-        btnStartStop.setText("Comenzar");
-        tvMotivationalQuote.setText("");resetModeTime();
+        btnStartStop.setText(R.string.btn_start);
+        tvMotivationalQuote.setText(R.string.empty_text);
+        resetModeTime();
     }
 
     /**
@@ -380,14 +387,16 @@ public class MainActivity extends AppCompatActivity {
 
         switch (currentMode) {
             case FOCUS:
-                tvSessionState.setText("Modo Enfoque"); break;
+                tvSessionState.setText(R.string.label_focus_mode);
+                break;
             case BREAK:
-                tvSessionState.setText("Modo Descanso");
+                tvSessionState.setText(R.string.label_break_mode);
                 break;
             case REST:
-                tvSessionState.setText("Descanso Largo");
+                tvSessionState.setText(R.string.label_rest_mode);
                 break;
-                default: tvSessionState.setText("Desconocido");
+            default:
+                tvSessionState.setText(R.string.empty_text);
         }
     }
 
@@ -450,12 +459,13 @@ public class MainActivity extends AppCompatActivity {
      * La oculta al volver a FOCUS.
      */
     private void showMotivationalQuote() {
-        if(tvMotivationalQuote == null) return;
+        if (tvMotivationalQuote == null) return;
+
         if (currentMode == SessionMode.BREAK || currentMode == SessionMode.REST) {
             int index = (int) (Math.random() * MOTIVATIONAL_QUOTES.length);
             tvMotivationalQuote.setText(MOTIVATIONAL_QUOTES[index]);
         } else {
-            tvMotivationalQuote.setText("");
+            tvMotivationalQuote.setText(R.string.empty_text);
         }
     }
 
@@ -469,18 +479,26 @@ public class MainActivity extends AppCompatActivity {
         if (targetMode == currentMode) return;
 
         new androidx.appcompat.app.AlertDialog.Builder(this)
-                .setTitle("Cambiar modo")
-                .setMessage("¿Quieres cambiar al modo seleccionado? Se perderá el tiempo actual.")
-                .setPositiveButton("Sí", (dialog, which) -> {
+                .setTitle(R.string.change_mode_title)
+                .setMessage(R.string.change_mode_message)
+                .setPositiveButton(R.string.yes, (dialog, which) -> {
                     cancelTimer();
                     timerState = TimerState.IDLE;
                     currentMode = targetMode;
-                    btnStartStop.setText("Comenzar");
+                    btnStartStop.setText(R.string.btn_start);
                     resetModeTime();
                     showMotivationalQuote();
                 })
-                .setNegativeButton("No", null)
+                .setNegativeButton(R.string.no, null)
                 .show();
     }
 
+    private void applySavedLanguage() {
+        String lang = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(getString(R.string.lang_preference_key), "es");
+
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                androidx.core.os.LocaleListCompat.forLanguageTags(lang)
+        );
+    }
 }

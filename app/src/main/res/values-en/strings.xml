@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">My Pomodoro</string>
+    <string name="btn_start">Start</string>
+    <string name="btn_pause">Pause</string>
+    <string name="btn_resume">Resume</string>
+    <string name="chip_focus">Focus</string>
+    <string name="chip_break">Break</string>
+    <string name="chip_rest">Long break</string>
+    <string name="label_focus_mode">Focus mode</string>
+    <string name="label_break_mode">Break mode</string>
+    <string name="label_rest_mode">Long break mode</string>
+    <string name="label_sessions">Sessions completed: %1$d</string>
+
+    <string name="empty_text"></string>
+    <string name="change_mode_title">Change mode</string>
+    <string name="change_mode_message">Do you want to switch to the selected mode? Current time will be lost.</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="motivational_quote_1">Good job! Take a short break.</string>
+    <string name="motivational_quote_2">Rest is also part of performance.</string>
+    <string name="motivational_quote_3">Take a moment to breathe.</string>
+    <string name="motivational_quote_4">Small breaks, big results.</string>
+    <string name="motivational_quote_5">The mind also needs to recharge.</string>
+    <string name="session_finished">Session finished!</string>
+
+    <string name="stadistics">Statistics</string>
+    <string name="configuration">Configuration</string>
+    <string name="skip">Skip</string>
+    <string name="restart">Restart</string>
+    <string name="time">25:00</string>
+
+    <string name="title_history">History</string>
+    <string name="title_preferences">Preferences</string>
+    <string name="pref_language_title">Language</string>
+    <string name="pref_theme_title">Theme</string>
+    <string name="lang_preference_key">pref_language</string>
+    <string name="theme_preference_key">pref_theme</string>
+    <string name="no_sessions">No sessions recorded</string>
+    <string name="session_count_zero">0 sessions</string>
+    <string name="session_count">Sessions</string>
+    <string name="no_sessions_label">No results</string>
+
+    <string name="history_filter_today">Today</string>
+    <string name="history_filter_week">Week</string>
+    <string name="history_filter_all">All</string>
+
+    <string name="history_empty_icon">⌁</string>
+    <string name="history_empty_title">No sessions recorded</string>
+    <string name="history_empty_desc">Your history will appear here when you complete sessions.</string>
+
+    <string name="session_status_completed">✓ Completed</string>
+    <string name="session_status_interrupted">✕ Interrupted</string>
+
+    <string name="theme_light_id" translatable="false">light</string>
+    <string name="theme_dark_id" translatable="false">dark</string>
+
+    <plurals name="session_count">
+        <item quantity="one">%d session</item>
+        <item quantity="other">%d sessions</item>
+    </plurals>
+</resources>

@@ -9,7 +9,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.preference.PreferenceManager;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 
+import java.util.Locale;
 import java.util.List;
 
 import com.example.myapplication.R;
@@ -32,7 +36,6 @@ public class SessionHistoryActivity extends AppCompatActivity {
     private ConstraintLayout layoutEmpty;
     private RecyclerView recyclerView;
 
-    // TODO: Declarar los componentes de filtrado (ChipGroup y Chips individuales).
     private ChipGroup chipGroupFilter;
     private Chip chipFilterToday;
     private Chip chipFilterWeek;
@@ -51,6 +54,8 @@ public class SessionHistoryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        applySavedLanguage();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_history_session);
 
@@ -77,12 +82,12 @@ public class SessionHistoryActivity extends AppCompatActivity {
 
         sessionManager = new SessionManager();
         // Puedes descomentar estas líneas para probar el diseño:
-
-        sessionManager.addSession(new Session("Enfoque", "18 mar 2026", "15:00", 25, true));
-        sessionManager.addSession(new Session("Descanso", "18 mar 2026", "15:25", 5, true));
-        sessionManager.addSession(new Session("Enfoque", "18 mar 2026", "17:25", 3, false));
-        sessionManager.addSession(new Session("Descanso", "18 mar 2026", "18:30", 15, true));
-
+        /*
+            sessionManager.addSession(new Session("Enfoque", "18 mar 2026", "15:00", 25, true));
+            sessionManager.addSession(new Session("Descanso", "18 mar 2026", "15:25", 5, true));
+            sessionManager.addSession(new Session("Enfoque", "18 mar 2026", "17:25", 3, false));
+            sessionManager.addSession(new Session("Descanso", "18 mar 2026", "18:30", 15, true));
+        */
     }
 
     /**
@@ -169,5 +174,14 @@ public class SessionHistoryActivity extends AppCompatActivity {
     public boolean onSupportNavigateUp() {
         finish();
         return true;
+    }
+
+    private void applySavedLanguage() {
+        String lang = PreferenceManager.getDefaultSharedPreferences(this)
+                .getString(getString(R.string.lang_preference_key), "es");
+
+        androidx.appcompat.app.AppCompatDelegate.setApplicationLocales(
+                androidx.core.os.LocaleListCompat.forLanguageTags(lang)
+        );
     }
 }
