@@ -2,8 +2,6 @@ package com.example.myapplication.controller;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.content.res.ColorStateList;
 
 import android.os.Bundle;
@@ -31,7 +29,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 
-import java.util.Locale;
+import com.example.myapplication.model.Session;
+import com.example.myapplication.model.SessionManager;
 
 /**
  * @author <a href=erick6aelgg@ciencias.unam.mx> Erick Gael García Gutiérrez - @erick6aelgg </>
@@ -49,6 +48,9 @@ public class MainActivity extends AppCompatActivity {
     private static final long BREAK_DURATION_MS   =  5 * 60 * 1000L;
     private static final long REST_DURATION_MS    = 15 * 60 * 1000L;
     private static final int SESSIONS_BEFORE_REST = 4;
+
+    // Para el manejo de sesiones.
+    private SessionManager sessionManager;
 
     // Elementos de la IU.
     private TextView tvAppTittle;
@@ -98,6 +100,7 @@ public class MainActivity extends AppCompatActivity {
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        sessionManager = new SessionManager(getApplicationContext());
         applySavedLanguage();
 
         super.onCreate(savedInstanceState);
@@ -109,6 +112,7 @@ public class MainActivity extends AppCompatActivity {
         bindViews();
         // Asignamos los escuchas.
         setupClickListeners();
+
         // Actualizamos la IU.
         if (savedInstanceState != null) {
             timeLeftMillis = savedInstanceState.getLong(KEY_TIME_LEFT, FOCUS_DURATION_MS);
@@ -237,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
              */
             @Override
             public void onFinish() {
-                onSessionFinished();
+                onSessionFinished(true);
             }
         }.start();
     }
@@ -262,8 +266,11 @@ public class MainActivity extends AppCompatActivity {
      * En sesiones de FOCUS: agrega un punto al contenedor. Cuando se
      * alcanzan 4 sesiones de FOCUS se limpia el contenedor y pasa a REST.
      * En descanso (BREAK o REST): vuelve a FOCUS.
+     * @param completed true si la sesión terminó por tiempo; false si fue interrumpida.
      */
-    private void onSessionFinished() {
+    private void onSessionFinished(boolean completed) {
+        SessionMode finishedMode = currentMode;
+        saveSessionAsync(finishedMode, completed);
         timerState = TimerState.IDLE;
 
         if (currentMode == SessionMode.FOCUS) {
@@ -282,7 +289,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Mostramos un mensaje sencillo al finalizar cada sesion.
-        Toast.makeText(this, "¡Sesión terminada!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.session_finished, Toast.LENGTH_SHORT).show();
 
         // solicitamos al servicio del sistema que genere una vibracion simple
         // para notificar al usuario que la sesion a terminado.
@@ -297,7 +304,6 @@ public class MainActivity extends AppCompatActivity {
         tvSessionsCompleted.setText(getString(R.string.label_sessions, totalSessionsCompleted));
         resetModeTime();
         btnStartStop.setText(R.string.btn_start);
-
     }
 
     /**
@@ -368,13 +374,12 @@ public class MainActivity extends AppCompatActivity {
      */
     private void skipToNextSession() {
         cancelTimer();
-        onSessionFinished();
+        onSessionFinished(false);
     }
 
     /**
      * Actualiza el TextView del temporizador con el tiempo restante formateado
      * como MM:SS y resalta el chip correspondiente al modo actual.
-     *
      * @param millis Tiempo restante en milisegundos.
      */
     private void updateTimerDisplay(long millis) {
@@ -501,4 +506,59 @@ public class MainActivity extends AppCompatActivity {
                 androidx.core.os.LocaleListCompat.forLanguageTags(lang)
         );
     }
+
+    private void saveSessionAsync(SessionMode mode, boolean completed) {
+        final String type = getSessionTypeLabel(mode);
+        final String date = new java.text.SimpleDateFormat("dd MMM yyyy", java.util.Locale.getDefault())
+                .format(new java.util.Date());
+        final String time = new java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
+                .format(new java.util.Date());
+        final int durationMinutes = getModeDurationMinutes(mode);
+
+        final Session session = new Session(type, date, time, durationMinutes, completed);
+
+        new Thread(() -> sessionManager.addSession(session)).start();
+    }
+
+    /**
+     * Convierte el modo actual a un texto visible para guardar en el historial.
+     * @param mode Modo actual.
+     * @return Nombre legible del modo.
+     */
+    private String getSessionTypeLabel(SessionMode mode) {
+        switch (mode) {
+            case BREAK:
+                return getString(R.string.chip_break);
+            case REST:
+                return getString(R.string.chip_rest);
+            default:
+                return getString(R.string.chip_focus);
+        }
+    }
+
+
+    private int getModeDurationMinutes(SessionMode mode) {
+        switch (mode) {
+            case BREAK:
+                return (int) (BREAK_DURATION_MS / 60000L);
+            case REST:
+                return (int) (REST_DURATION_MS / 60000L);
+            default:
+                return (int) (FOCUS_DURATION_MS / 60000L);
+        }
+    }
+
+    private void vibrateOnFinish() {
+        try {
+            Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+            if (v != null) {
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    v.vibrate(VibrationEffect.createOneShot(500, VibrationEffect.DEFAULT_AMPLITUDE));
+                } else {
+                    v.vibrate(500);
+                }
+            }
+        } catch (SecurityException ignored) {}
+    }
+
 }

@@ -1,20 +1,49 @@
 package com.example.myapplication.model;
 
 public class Session {
+    private long id;          // Identificador
     private String type;      // Tipo de la sesion: Enfoque o Descanso
     private String date;      // Formato: EEE, dd MMM yyyy
     private String startTime; // Formato: hh:mm
     private int duration;     // Duracion de la sesion: 25, 5 o 15 min
     private boolean completed; // La sesion fue Completada o Interrumpida
+    private long createdAtMillis; // Tiempo de inicio de la sesión
 
     // Constructor, Getters y Setters...
 
+    // Crea una sesion sin un id asignado.
     public Session(String type, String date, String startTime, int duration, boolean completed) {
+        this.id = -1L;
         this.type = type;
         this.date = date;
         this.startTime = startTime;
         this.duration = duration;
         this.completed = completed;
+        this.createdAtMillis = System.currentTimeMillis();
+    }
+
+    // Crea una sesion defindiendo sus campos.
+
+    public Session(long id, String type, String date, String startTime, int duration, boolean completed, long createdAtMillis) {
+        this.id = id;
+        this.type = type;
+        this.date = date;
+        this.startTime = startTime;
+        this.duration = duration;
+        this.completed = completed;
+        this.createdAtMillis = createdAtMillis;
+    }
+
+    // Constructor vacío
+
+    public Session(){ }
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
     }
 
     public String getType() {
@@ -55,5 +84,12 @@ public class Session {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public void setCreatedAtMillis(long createdAtMillis) {
+        this.createdAtMillis = createdAtMillis;
+    }
+    public long getCreatedAtMillis() {
+        return createdAtMillis;
     }
 }

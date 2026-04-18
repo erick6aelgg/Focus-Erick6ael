@@ -22,8 +22,13 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".view.SessionHistoryActivity" />
-        <activity android:name=".view.PreferencesActivity" />
+        <activity
+            android:name=".view.SessionHistoryActivity"
+            android:screenOrientation="portrait"
+            />
+        <activity android:name=".view.PreferencesActivity"
+            android:screenOrientation="portrait"
+            />
     </application>
 
 </manifest>

@@ -80,7 +80,7 @@ public class SessionHistoryActivity extends AppCompatActivity {
         chipFilterWeek = findViewById(R.id.chipFilterWeek);
         chipFilterAll = findViewById(R.id.chipFilterAll);
 
-        sessionManager = new SessionManager();
+        sessionManager = new SessionManager(this);
         // Puedes descomentar estas líneas para probar el diseño:
         /*
             sessionManager.addSession(new Session("Enfoque", "18 mar 2026", "15:00", 25, true));

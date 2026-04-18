@@ -1,13 +1,17 @@
 package com.example.myapplication.model;
 
-import java.util.ArrayList;
-import java.util.List;
+import static com.example.myapplication.data.SessionContract.SessionEntry.*;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.List;
 import java.util.Locale;
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import com.example.myapplication.data.SessionContract.SessionEntry.*;
+import com.example.myapplication.data.SessionDbHelper;
 
 /**
  * Gestiona el ciclo de vida de las tareas sugeridas dentro de la aplicación.
@@ -16,23 +20,40 @@ import java.util.Locale;
  * @version 1.0, feb 2026
  */
 public class SessionManager {
-    private List<Session> sessionHistory;
+    private final SessionDbHelper dbHelper;
     private static final Locale APP_LOCALE = new Locale("es", "MX");
     private static final String DATE_PATTERN = "dd MMM yyyy";
 
-    public SessionManager() {
-        this.sessionHistory = new ArrayList<>();
+    public SessionManager(Context context) {
+        dbHelper = new SessionDbHelper(context);
     }
 
     /**
      * Agrega una sesión al historial.
      * Se inserta al inicio para que lo más reciente aparezca primero.
      * @param session Sesión a registrar.
+     * @return ID insertado o -1 si falló.
      */
     public void addSession(Session session) {
-        if (session != null) {
-            sessionHistory.add(0, session); // Insertamos al inicio para ver lo más reciente
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        try {
+            ContentValues values = new ContentValues();
+            values.put(COLUMN_TYPE, session.getType());
+            values.put(COLUMN_DATE, session.getDate());
+            values.put(COLUMN_START_TIME, session.getStartTime());
+            values.put(COLUMN_DURATION, session.getDuration());
+            values.put(COLUMN_COMPLETED, session.isCompleted() ? 1 : 0);
+            values.put(COLUMN_CREATED_AT, session.getCreatedAtMillis());
+
+
+            long newId = db.insert(TABLE_NAME, null, values);
+            if (newId != -1L) {
+                session.setId(newId);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        db.close();
     }
 
     /**
@@ -40,166 +61,108 @@ public class SessionManager {
      * @return Lista nueva con todas las sesiones registradas.
      */
     public List<Session> getHistory() {
-        return new ArrayList<>(sessionHistory);
+        return getAllSessions();
     }
 
     /**
-     * Obtiene una sesión por índice.
-     * @param index Posición dentro del historial.
-     * @return La sesión encontrada, o null si el índice es inválido.
+     * Devuelve una copia del historial completo de sesiones.
+     * @return Lista nueva con todas las sesiones registradas.
      */
-    public Session getSessionAt(int index) {
-        if (index < 0 || index >= sessionHistory.size()) {
-            return null;
+    public List<Session> getAllSessions(){
+        List<Session> sessionList = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        // Consultamos toda la tabla, ordenando por ID descendente (dejando la sesión más reciente primero)
+        Cursor cursor = db.query(TABLE_NAME, null, null, null, null, null, _ID + " DESC");
+
+        if (cursor.moveToFirst()) {
+            do {
+                Session session = new Session();
+                // Extraemos los datos usando el índice de la columna
+                session.setId(cursor.getLong(cursor.getColumnIndexOrThrow(_ID)));
+                session.setType(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TYPE)));
+                session.setDate(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE)));
+                session.setStartTime(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_START_TIME)));
+                session.setDuration(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DURATION)));
+                // Convertimos el 1/0 de SQLite de vuelta a boolean
+                int completedInt = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_COMPLETED));
+                session.setCompleted(completedInt == 1);
+                session.setCreatedAtMillis(cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT)));
+
+                sessionList.add(session);
+            } while (cursor.moveToNext());
         }
-        return sessionHistory.get(index);
-    }
-
-    /**
-     * Reemplaza una sesión existente en una posición específica.
-     * @param index Índice de la sesión a reemplazar.
-     * @param updatedSession Nueva sesión.
-     * @return true si se realizó el cambio; false si el índice es inválido
-     *         o la nueva sesión es null.
-     */
-    public boolean updateSession(int index, Session updatedSession) {
-        if (updatedSession == null || index < 0 || index >= sessionHistory.size()) {
-            return false;
-        }
-        sessionHistory.set(index, updatedSession);
-        return true;
-    }
-
-    /**
-     * Elimina una sesión por índice.
-     * @param index Índice de la sesión a eliminar.
-     * @return true si la sesión fue eliminada; false si el índice es inválido.
-     */
-    public boolean removeSessionAt(int index) {
-        if (index < 0 || index >= sessionHistory.size()) {
-            return false;
-        }
-        sessionHistory.remove(index);
-        return true;
-    }
-
-    /**
-     * Elimina una sesión específica del historial.
-     * @param session Sesión a eliminar.
-     * @return true si la sesión fue encontrada y eliminada.
-     */
-    public boolean removeSession(Session session) {
-        return session != null && sessionHistory.remove(session);
-    }
-
-    /**
-     * Borra por completo el historial de sesiones.
-     */
-    public void clearHistory() {
-        sessionHistory.clear();
+        cursor.close();
+        db.close();
+        return sessionList;
     }
 
     /**
      * Obtiene las sesiones registradas en la fecha actual.
      * El filtro depende de que Session.getDate() use el formato "dd MMM yyyy".
-     *
      * @return Lista con las sesiones del día de hoy.
      */
     public List<Session> getTodaySessions() {
         List<Session> result = new ArrayList<>();
-        Date today = new Date();
+        Calendar today = Calendar.getInstance();
 
-        for (Session session : sessionHistory) {
-            Date sessionDate = parseSessionDate(session != null ? session.getDate() : null);
-            if (sessionDate != null && isSameDay(sessionDate, today)) {
+        for (Session session : getHistory()) {
+            Calendar item = Calendar.getInstance();
+            item.setTimeInMillis(session.getCreatedAtMillis());
+
+            if (sameDay(today, item)) {
                 result.add(session);
             }
         }
         return result;
+    }
+
+    /**
+     * Comprueba si dos calendarios pertenecen al mismo día.
+     * @param first Primer calendario.
+     * @param second Segundo calendario.
+     * @return true si son el mismo día.
+     */
+    private boolean sameDay(Calendar first, Calendar second) {
+        return first.get(Calendar.YEAR) == second.get(Calendar.YEAR)
+                && first.get(Calendar.DAY_OF_YEAR) == second.get(Calendar.DAY_OF_YEAR);
     }
 
     /**
      * Obtiene las sesiones registradas en la semana actual.
      * La semana se calcula de lunes a domingo.
      * El filtro depende de que Session.getDate() use el formato "dd MMM yyyy".
-     *
      * @return Lista con las sesiones de la semana actual.
      */
     public List<Session> getThisWeekSessions() {
         List<Session> result = new ArrayList<>();
 
-        Calendar now = Calendar.getInstance(APP_LOCALE);
+        Calendar now = Calendar.getInstance(Locale.getDefault());
         Calendar startOfWeek = (Calendar) now.clone();
         startOfWeek.setFirstDayOfWeek(Calendar.MONDAY);
         startOfWeek.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
-        resetTime(startOfWeek);
+        zeroTime(startOfWeek);
 
         Calendar endOfWeek = (Calendar) startOfWeek.clone();
         endOfWeek.add(Calendar.DAY_OF_YEAR, 6);
-        setEndOfDay(endOfWeek);
+        endOfDay(endOfWeek);
 
-        for (Session session : sessionHistory) {
-            Date sessionDate = parseSessionDate(session != null ? session.getDate() : null);
-            if (sessionDate == null) {
-                continue;
-            }
+        for (Session session : getHistory()) {
+            Calendar item = Calendar.getInstance();
+            item.setTimeInMillis(session.getCreatedAtMillis());
 
-            Calendar sessionCalendar = Calendar.getInstance(APP_LOCALE);
-            sessionCalendar.setTime(sessionDate);
-
-            if (!sessionCalendar.before(startOfWeek) && !sessionCalendar.after(endOfWeek)) {
+            if (!item.before(startOfWeek) && !item.after(endOfWeek)) {
                 result.add(session);
             }
         }
-
         return result;
     }
 
     /**
-     * Convierte el texto de fecha guardado en Session a un objeto Date.
-     *
-     * @param dateText Fecha en formato "dd MMM yyyy".
-     * @return Fecha parseada o null si el texto no es válido.
-     */
-    private Date parseSessionDate(String dateText) {
-        if (dateText == null || dateText.trim().isEmpty()) {
-            return null;
-        }
-
-        SimpleDateFormat sdf = new SimpleDateFormat(DATE_PATTERN, APP_LOCALE);
-        sdf.setLenient(false);
-
-        try {
-            return sdf.parse(dateText.trim());
-        } catch (ParseException e) {
-            return null;
-        }
-    }
-
-    /**
-     * Compara si dos fechas corresponden al mismo día calendario.
-     *
-     * @param first Primera fecha.
-     * @param second Segunda fecha.
-     * @return true si son el mismo día.
-     */
-    private boolean isSameDay(Date first, Date second) {
-        Calendar c1 = Calendar.getInstance(APP_LOCALE);
-        Calendar c2 = Calendar.getInstance(APP_LOCALE);
-
-        c1.setTime(first);
-        c2.setTime(second);
-
-        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR)
-                && c1.get(Calendar.DAY_OF_YEAR) == c2.get(Calendar.DAY_OF_YEAR);
-    }
-
-    /**
-     * Limpia la hora de un Calendar para dejarlo en 00:00:00.000.
-     *
+     * Lleva un Calendar al inicio del día.
      * @param calendar Calendar a ajustar.
      */
-    private void resetTime(Calendar calendar) {
+    private void zeroTime(Calendar calendar) {
         calendar.set(Calendar.HOUR_OF_DAY, 0);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
@@ -207,16 +170,16 @@ public class SessionManager {
     }
 
     /**
-     * Ajusta un Calendar al final del día 23:59:59.999.
-     *
+     * Lleva un Calendar al final del día.
      * @param calendar Calendar a ajustar.
      */
-    private void setEndOfDay(Calendar calendar) {
+    private void endOfDay(Calendar calendar) {
         calendar.set(Calendar.HOUR_OF_DAY, 23);
         calendar.set(Calendar.MINUTE, 59);
         calendar.set(Calendar.SECOND, 59);
         calendar.set(Calendar.MILLISECOND, 999);
     }
 
- }
+
+}
 
